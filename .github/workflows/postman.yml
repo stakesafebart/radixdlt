@@ -12,13 +12,14 @@ jobs:
         with:
           access_token: ${{ github.token }}
   checkout:
-    name: Generate and sync postman collection
+    name: Checkout openapi spec
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
-          repository: https://github.com/Theoklitos/openapi-spec
+          repository: Theoklitos/openapi-spec
           #path: './'
+      - run: ls
   generate:
     name: Generate and sync postman collection
     runs-on: ubuntu-20.04
