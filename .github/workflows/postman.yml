@@ -24,7 +24,7 @@ jobs:
         uses: "finnp/create-file-action@master"
         env:
           FILE_NAME: ".env"
-          FILE_DATA: "POSTMAN_API_KEY=${{ secrets.POSTMAN_API_TOKEN }}"
+          FILE_DATA: "POSTMAN_API_KEY=PMAK-6151d595869cba0046b11ade-d4b7290eccf83615e40567a90a3dec8a4d"
       - run: ls -la
       - run: cat .env
       - name: Generate and upload postman collection
