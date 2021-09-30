@@ -26,5 +26,6 @@ jobs:
           FILE_NAME: ".env"
           FILE_DATA: "POSTMAN_API_KEY=${{ secrets.POSTMAN_API_TOKEN }}"
       - run: ls -la
+      - run: cat .env
       - name: Generate and upload postman collection
         run: npx @apideck/portman -l openapi-spec.json --syncPostman true
