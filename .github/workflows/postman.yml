@@ -20,5 +20,5 @@ jobs:
         with:
           node-version: '14'
       - run: npm install @apideck/portman
-      - run: portman --help
+      - run: npx @apideck/portman
 
