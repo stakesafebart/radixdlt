@@ -16,13 +16,15 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-        name: test name
+        name: Checkout the openapi spec
         with:
           repository: Theoklitos/openapi-spec
-      - run: ls
       - uses: actions/setup-node@v2
-        name: test name 2
+        name: Generate postman collection from spec, and upload it
         with:
           node-version: '14'
       - run: npx @apideck/portman -l openapi-spec.json --syncPostman true
+      name: Run newman
+      run: ls
+      run: newman run collection.postman.json
 
