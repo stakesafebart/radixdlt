@@ -11,16 +11,3 @@ jobs:
         uses: styfle/cancel-workflow-action@0.8.0
         with:
           access_token: ${{ github.token }}
-  generate:
-    name: Generate and sync postman collection
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-        name: Checkout the openapi spec
-        with:
-          repository: Theoklitos/openapi-spec
-      - uses: actions/setup-node@v2
-        name: Generate and upload postman collection
-        with:
-          node-version: '14'
-        run: npx @apideck/portman -l openapi-spec.json --syncPostman true
