@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: '14'
       - run: npx @apideck/portman -l openapi-spec.json --syncPostman true
-      name: Run newman
-      run: ls
-      run: newman run collection.postman.json
+        name: Run newman
+        run: ls
+        run: newman run collection.postman.json
 
