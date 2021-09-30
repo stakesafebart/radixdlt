@@ -17,6 +17,3 @@ jobs:
     steps:
       - name: Checkout the openapi spec
         uses: actions/checkout@v2
-        with:
-          repository: Theoklitos/openapi-spec
-        run: ls
