@@ -21,7 +21,10 @@ jobs:
         with:
           repository: Theoklitos/openapi-spec
       - name: Setup credentials
-        run: echo ${{ secrets.POSTMAN_API_TOKEN }} > .env
+        uses: "finnp/create-file-action@master"
+        env:
+          FILE_NAME: ".env"
+          FILE_DATA: "POSTMAN_API_KEY=${{ secrets.POSTMAN_API_TOKEN }}"
       - run: ls
       - name: Generate and upload postman collection
         run: npx @apideck/portman -l openapi-spec.json --syncPostman true
