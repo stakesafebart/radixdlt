@@ -15,6 +15,10 @@ jobs:
     name: Generate and sync postman collection
     runs-on: ubuntu-20.04
     steps:
+      - uses: actions/checkout@v2
+        name: Checkout the openapi spec
+        with:
+          repository: Theoklitos/openapi-spec
       - name: Generate and upload postman collection
         uses: actions/setup-node@v2
         with:
