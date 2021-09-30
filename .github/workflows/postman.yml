@@ -15,8 +15,8 @@ jobs:
     name: Generate and sync postman collection
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout the openapi spec
-        uses: actions/checkout@v2
+      - name: Generate and upload postman collection
+        uses: actions/setup-node@v2
         with:
-          repository: Theoklitos/openapi-spec
-        run: ls
+          node-version: '14'
+        run: npx @apideck/portman -l openapi-spec.json --syncPostman true
