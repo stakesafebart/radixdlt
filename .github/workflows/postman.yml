@@ -21,7 +21,7 @@ jobs:
         with:
           repository: Theoklitos/openapi-spec
       - name: Setup credentials
-        run: echo ${{ secrets.POSTMAN_API_TOKEN_WRONG_NAME }} > .env
+        run: echo ${{ secrets.POSTMAN_API_TOKEN }} > .env
       - run: ls
       - name: Generate and upload postman collection
         run: npx @apideck/portman -l openapi-spec.json --syncPostman true
