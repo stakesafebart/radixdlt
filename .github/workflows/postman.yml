@@ -26,5 +26,6 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
+      - run: ls
       - run: npx @apideck/portman -l openapi-spec.json --syncPostman true
 
