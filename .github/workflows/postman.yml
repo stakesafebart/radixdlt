@@ -26,7 +26,7 @@ jobs:
           FILE_NAME: ".env"
           FILE_DATA: "POSTMAN_API_KEY=${{ secrets.POSTMAN_API_TOKEN }}"
       - name: Generate and upload postman collection
-        run: npx @apideck/portman -l openapi-spec.json --syncPostman true
+        run: npx @apideck/portman -l openapi-spec.json -o ./tmp/collection.postman.json --syncPostman true
       - run: ls -la /tmp
       - name: Validate collection w/ newman
-        run: newman run collection.postman.json
+        run: newman run /tmp/collection.postman.json
