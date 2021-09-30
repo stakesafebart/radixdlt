@@ -12,7 +12,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
   generate:
-    name: Generate, validate and sync postman collection
+    name: Sync postman collection
     environment: Postman
     runs-on: ubuntu-20.04
     steps:
@@ -27,6 +27,6 @@ jobs:
           FILE_DATA: "POSTMAN_API_KEY=${{ secrets.POSTMAN_API_TOKEN }}"
       - name: Generate and upload postman collection
         run: npx @apideck/portman -l openapi-spec.json --syncPostman true
-      - run: ls -la
+      - run: ls -la /tmp
       - name: Validate collection w/ newman
         run: newman run collection.postman.json
