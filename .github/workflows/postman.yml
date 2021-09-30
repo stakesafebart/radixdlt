@@ -19,8 +19,8 @@ jobs:
         name: Checkout the openapi spec
         with:
           repository: Theoklitos/openapi-spec
-      - name: Generate and upload postman collection
-        uses: actions/setup-node@v2
+      - uses: actions/setup-node@v2
+        name: Generate and upload postman collection
         with:
           node-version: '14'
         run: npx @apideck/portman -l openapi-spec.json --syncPostman true
