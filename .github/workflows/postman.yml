@@ -28,6 +28,7 @@ jobs:
           write-mode: append
       - name: Generate and upload postman collection
         run: |
-          npx @apideck/portman -l openapi-spec.json -o /tmp/collection.postman.json --envFile .env-rcnet --syncPostman true
+          npx @apideck/portman -l openapi-spec.json -o /tmp/collection.postman.json --envFile .env-rcnet --syncPostman true \
+          -b https://rcnet.radixdlt.com
       - name: Validate collection w/ newman
         run: newman run /tmp/collection.postman.json
