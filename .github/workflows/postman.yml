@@ -20,13 +20,14 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: Theoklitos/openapi-spec
+      - run: ls -la
       - name: Setup credentials
-        uses: "finnp/create-file-action@master"
-        env:
-          FILE_NAME: ".env"
-          FILE_DATA: "POSTMAN_API_KEY=${{ secrets.POSTMAN_API_TOKEN }}"
+        uses: DamianReeves/write-file-action
+        with:
+          path: .env-rcnet
+          contents: "POSTMAN_API_KEY=${{ secrets.POSTMAN_API_TOKEN }}"
+          write-mode: append
       - name: Generate and upload postman collection
-        run: npx @apideck/portman -l openapi-spec.json -o /tmp/collection.postman.json --syncPostman true
-      - run: ls -la /tmp
+        run: npx @apideck/portman -l openapi-spec.json -o /tmp/collection.postman.json --envFile .env-rcnet --syncPostman true
       - name: Validate collection w/ newman
         run: newman run /tmp/collection.postman.json
