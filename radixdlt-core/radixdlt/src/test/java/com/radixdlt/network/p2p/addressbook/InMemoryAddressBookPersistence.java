@@ -62,23 +62,46 @@
  * permissions under this License.
  */
 
-package com.radixdlt.engine;
+package com.radixdlt.network.p2p.addressbook;
 
-import com.radixdlt.constraintmachine.REProcessedTxn;
+import com.google.common.collect.ImmutableList;
+import com.radixdlt.network.p2p.NodeId;
 
-import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Verifies that batched atoms executed on Radix Engine follow some
- * specified rules.
- *
- * @param <M> class of metadata
- */
-public interface BatchVerifier<M> {
-	default void testMetadata(M metadata, List<REProcessedTxn> txns) throws MetadataException {
+public final class InMemoryAddressBookPersistence implements AddressBookPersistence {
+	private final Map<NodeId, AddressBookEntry> entries = new ConcurrentHashMap<>();
+
+	@Override
+	public void open() {
+		// no-op
 	}
 
-	static <M> BatchVerifier<M> empty() {
-		return new BatchVerifier<>() {};
+	@Override
+	public void reset() {
+		entries.clear();
+	}
+
+	@Override
+	public void close() {
+		// no-op
+	}
+
+	@Override
+	public boolean saveEntry(AddressBookEntry entry) {
+		entries.put(entry.getNodeId(), entry);
+		return true;
+	}
+
+	@Override
+	public boolean removeEntry(NodeId nodeId) {
+		entries.remove(nodeId);
+		return true;
+	}
+
+	@Override
+	public ImmutableList<AddressBookEntry> getAllEntries() {
+		return ImmutableList.copyOf(entries.values());
 	}
 }

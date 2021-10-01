@@ -62,18 +62,100 @@
  * permissions under this License.
  */
 
-package com.radixdlt.crypto;
+package com.radixdlt.statecomputer.forks;
 
-public enum SignatureScheme {
+import com.google.common.hash.HashCode;
 
-    /**
-     *  Elliptic Curve Digital Signature Algorithm, or ECDSA for short. A good introduction is to be found
-     *  <a href="https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm">here on wikipedia</a>.
-     */
-    ECDSA;
+import java.util.Optional;
 
-    @Override
-    public String toString() {
-        return this.name().toLowerCase();
-    }
+/**
+ * An intermediate class used for creating fork configurations.
+ * Allows to modify various config parameters before the actual fork config object is created.
+ */
+public final class ForkBuilder {
+	private final String name;
+	private final HashCode hash;
+	private final long epoch;
+	private final Optional<Integer> requiredStake;
+	private final RERulesVersion reRulesVersion;
+	private final RERulesConfig reRulesConfig;
+
+	public ForkBuilder(
+		String name,
+		HashCode hash,
+		long fixedEpoch,
+		RERulesVersion reRulesVersion,
+		RERulesConfig reRulesConfig
+	) {
+		this(name, hash, fixedEpoch, Optional.empty(), reRulesVersion, reRulesConfig);
+	}
+
+	public ForkBuilder(
+		String name,
+		HashCode hash,
+		long minEpoch,
+		int requiredStake,
+		RERulesVersion reRulesVersion,
+		RERulesConfig reRulesConfig
+	) {
+		this(name, hash, minEpoch, Optional.of(requiredStake), reRulesVersion, reRulesConfig);
+	}
+
+	private ForkBuilder(
+		String name,
+		HashCode hash,
+		long epoch,
+		Optional<Integer> requiredStake,
+		RERulesVersion reRulesVersion,
+		RERulesConfig reRulesConfig
+	) {
+		this.name = name;
+		this.hash = hash;
+		this.epoch = epoch;
+		this.requiredStake = requiredStake;
+		this.reRulesVersion = reRulesVersion;
+		this.reRulesConfig = reRulesConfig;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public RERulesConfig getEngineRulesConfig() {
+		return reRulesConfig;
+	}
+
+	public RERulesVersion getReRulesVersion() {
+		return reRulesVersion;
+	}
+
+	public ForkBuilder withEngineRulesConfig(RERulesConfig newEngineRulesConfig) {
+		return new ForkBuilder(name, hash, epoch, requiredStake, reRulesVersion, newEngineRulesConfig);
+	}
+
+	public ForkBuilder atFixedEpoch(long fixedEpoch) {
+		return new ForkBuilder(name, hash, fixedEpoch, Optional.empty(), reRulesVersion, reRulesConfig);
+	}
+
+	public ForkBuilder withStakeVoting(long minEpoch, int requiredStake) {
+		return new ForkBuilder(
+			name,
+			hash,
+			minEpoch,
+			Optional.of(requiredStake),
+			reRulesVersion,
+			reRulesConfig
+		);
+	}
+
+	public long epoch() {
+		return epoch;
+	}
+
+	public ForkConfig build() {
+		final var reRules = reRulesVersion.create(reRulesConfig);
+		return requiredStake
+			.<ForkConfig>map(rs -> new CandidateForkConfig(name, hash, reRules, rs, epoch))
+			.orElseGet(() -> new FixedEpochForkConfig(name, hash, reRules, epoch));
+	}
 }

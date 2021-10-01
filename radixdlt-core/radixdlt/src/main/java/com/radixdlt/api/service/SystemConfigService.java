@@ -63,10 +63,14 @@
 
 package com.radixdlt.api.service;
 
+import com.radixdlt.api.util.JsonRpcUtil;
 import com.radixdlt.consensus.bft.Self;
 import com.radixdlt.crypto.ECPublicKey;
 import com.radixdlt.network.p2p.addressbook.AddressBook;
 import com.radixdlt.network.p2p.addressbook.AddressBookEntry;
+import com.radixdlt.statecomputer.forks.CandidateForkConfig;
+import com.radixdlt.statecomputer.forks.FixedEpochForkConfig;
+import com.radixdlt.statecomputer.forks.Forks;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -92,14 +96,11 @@ import com.radixdlt.utils.Bytes;
 
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static com.radixdlt.api.util.JsonRpcUtil.jsonArray;
 import static com.radixdlt.api.util.JsonRpcUtil.jsonObject;
 import static com.radixdlt.api.util.JsonRpcUtil.fromCollection;
-import static com.radixdlt.api.util.JsonRpcUtil.fromMap;
-import static com.radixdlt.api.util.JsonRpcUtil.wrapArray;
 
 
 public class SystemConfigService {
@@ -197,7 +198,7 @@ public class SystemConfigService {
 		CounterType.NETWORKING_RECEIVED_BYTES
 	);
 
-	private final JSONObject radixEngineConfiguration;
+	private final JSONArray radixEngineConfiguration;
 	private final JSONObject mempoolConfiguration;
 	private final JSONObject apiConfiguration;
 	private final JSONObject bftConfiguration;
@@ -220,7 +221,7 @@ public class SystemConfigService {
 		@MempoolMaxSize int mempoolMaxSize,
 		@MempoolThrottleMs long mempoolThrottleMs,
 		@Genesis VerifiedTxnsAndProof genesis,
-		TreeMap<Long, ForkConfig> forks,
+		Forks forks,
 		SyncConfig syncConfig,
 		InMemorySystemInfo inMemorySystemInfo,
 		SystemCounters systemCounters,
@@ -249,7 +250,7 @@ public class SystemConfigService {
 	}
 
 	public JSONObject getApiData() {
-		return countersToJson(systemCounters, API_COUNTERS, false);
+		return CountersJsonFormatter.countersToJson(systemCounters, API_COUNTERS, false);
 	}
 
 	public JSONObject getBftConfiguration() {
@@ -257,7 +258,7 @@ public class SystemConfigService {
 	}
 
 	public JSONObject getBftData() {
-		return countersToJson(systemCounters, BFT_COUNTERS, true);
+		return CountersJsonFormatter.countersToJson(systemCounters, BFT_COUNTERS, true);
 	}
 
 	public JSONObject getMempoolConfiguration() {
@@ -265,7 +266,7 @@ public class SystemConfigService {
 	}
 
 	public JSONObject getMempoolData() {
-		return countersToJson(systemCounters, MEMPOOL_COUNTERS, true);
+		return CountersJsonFormatter.countersToJson(systemCounters, MEMPOOL_COUNTERS, true);
 	}
 
 	public JSONObject getLatestProof() {
@@ -279,11 +280,11 @@ public class SystemConfigService {
 	}
 
 	public JSONObject getRadixEngineConfiguration() {
-		return radixEngineConfiguration;
+		return JsonRpcUtil.wrapArray(radixEngineConfiguration);
 	}
 
 	public JSONObject getRadixEngineData() {
-		return countersToJson(systemCounters, RADIX_ENGINE_COUNTERS, true);
+		return CountersJsonFormatter.countersToJson(systemCounters, RADIX_ENGINE_COUNTERS, true);
 	}
 
 	public JSONObject getSyncConfig() {
@@ -291,7 +292,7 @@ public class SystemConfigService {
 	}
 
 	public JSONObject getSyncData() {
-		return countersToJson(systemCounters, SYNC_COUNTERS, true);
+		return CountersJsonFormatter.countersToJson(systemCounters, SYNC_COUNTERS, true);
 	}
 
 	public JSONObject getNetworkingConfiguration() {
@@ -396,8 +397,27 @@ public class SystemConfigService {
 	}
 
 	@VisibleForTesting
-	static JSONObject prepareRadixEngineConfiguration(TreeMap<Long, ForkConfig> forksConfigs) {
-		return wrapArray(fromMap(forksConfigs, (key, config) -> config.asJson()));
+	static JSONArray prepareRadixEngineConfiguration(Forks forks) {
+		final var forksJson = jsonArray();
+		forks.forkConfigs().forEach(forkConfig -> forksJson.put(forkConfigJson(forkConfig)));
+		return forksJson;
+	}
+
+	static JSONObject forkConfigJson(ForkConfig forkConfig) {
+		final var json = new JSONObject()
+			.put("name", forkConfig.name())
+			.put("hash", forkConfig.hash().toString())
+			.put("isCandidate", forkConfig instanceof CandidateForkConfig)
+			.put("version", forkConfig.engineRules().getVersion().name().toLowerCase())
+			.put("rulesConfig", forkConfig.engineRules().getConfig().asJson());
+
+		if (forkConfig instanceof FixedEpochForkConfig) {
+			json.put("epoch", ((FixedEpochForkConfig) forkConfig).epoch());
+		} else if (forkConfig instanceof CandidateForkConfig) {
+			json.put("min_epoch", ((CandidateForkConfig) forkConfig).minEpoch());
+		}
+
+		return json;
 	}
 
 	@VisibleForTesting
@@ -462,7 +482,6 @@ public class SystemConfigService {
 			final var addrObj = jsonObject()
 				.put("uri", addr.getUri())
 				.put("blacklisted", addr.blacklisted());
-			addr.getLastSuccessfulConnection().ifPresent(ts -> addrObj.put("lastSuccessfulConnection", ts));
 			knownAddressesArray.put(addrObj);
 		});
 
