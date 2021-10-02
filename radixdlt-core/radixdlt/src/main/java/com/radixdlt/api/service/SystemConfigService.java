@@ -441,6 +441,7 @@ public class SystemConfigService {
 	private JSONObject peerToJson(PeersView.PeerInfo peer) {
 		var channelsJson = jsonArray();
 		var peerJson = jsonObject().put("address", addressing.forNodes().of(peer.getNodeId().getPublicKey()));
+		peerJson.put("publicKey", peer.getNodeId().getPublicKey().toHex());
 
 		peer.getChannels().forEach(channel -> {
 			var channelJson = jsonObject()
