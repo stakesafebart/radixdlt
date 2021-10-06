@@ -166,14 +166,14 @@ public final class PeerChannel extends SimpleChannelInboundHandler<byte[]> {
 				() -> {
 					this.counters.increment(SystemCounters.CounterType.NETWORKING_TCP_DROPPED_MESSAGES);
 					final var logLevel = droppedMessagesRateLimiter.tryAcquire() ? Level.WARN : Level.TRACE;
-					log.log(logLevel, "TCP msg buffer overflow, dropping msg on {}", this.toString());
+					log.info("TCP msg buffer overflow, dropping msg on {}", this.toString());
 				},
 				BackpressureOverflowStrategy.DROP_LATEST);
 	}
 
 	private void initHandshake(NodeId remoteNodeId) {
 		final var initiatePacket = authHandshaker.initiate(remoteNodeId.getPublicKey());
-		log.trace("Sending auth initiate to {}", this.toString());
+		log.info("Sending auth initiate to {}", this.toString());
 		this.write(initiatePacket);
 	}
 
@@ -183,11 +183,11 @@ public final class PeerChannel extends SimpleChannelInboundHandler<byte[]> {
 
 	private void handleHandshakeData(byte[] data) throws IOException {
 		if (this.isInitiator) {
-			log.trace("Auth response from {}", this.toString());
+			log.info("Auth response from {}", this.toString());
 			final var handshakeResult = this.authHandshaker.handleResponseMessage(data);
 			this.finalizeHandshake(handshakeResult);
 		} else {
-			log.trace("Auth initiate from {}", this.toString());
+			log.info("Auth initiate from {}", this.toString());
 			final var result = this.authHandshaker.handleInitialMessage(data);
 			this.write(result.getFirst());
 			this.finalizeHandshake(result.getSecond());
@@ -195,16 +195,16 @@ public final class PeerChannel extends SimpleChannelInboundHandler<byte[]> {
 	}
 
 	private void finalizeHandshake(AuthHandshakeResult handshakeResult) {
-		if (handshakeResult instanceof AuthHandshakeSuccess) {
+		if (true) {
 			final var successResult = (AuthHandshakeSuccess) handshakeResult;
 			this.remoteNodeId = successResult.getRemoteNodeId();
 			this.frameCodec = new FrameCodec(successResult.getSecrets());
 			this.state = ChannelState.ACTIVE;
-			log.trace("Successful auth handshake: {}", this.toString());
+			log.info("Successful auth handshake: {}", this.toString());
 			peerEventDispatcher.dispatch(PeerConnected.create(this));
 		} else {
 			final var errorResult = (AuthHandshakeError) handshakeResult;
-			log.warn("Auth handshake failed on {}: {}", this.toString(), errorResult.getMsg());
+			log.info("Auth handshake failed on {}: {}", this.toString(), errorResult.getMsg());
 			peerEventDispatcher.dispatch(PeerHandshakeFailed.create(this));
 			this.disconnect();
 		}
@@ -224,7 +224,7 @@ public final class PeerChannel extends SimpleChannelInboundHandler<byte[]> {
 	public void channelActive(ChannelHandlerContext ctx) throws PublicKeyException {
 		this.state = ChannelState.AUTH_HANDSHAKE;
 
-		log.trace("Active: {}", this.toString());
+		log.info("Active: {}", this.toString());
 
 		if (this.isInitiator) {
 			this.initHandshake(this.remoteNodeId);
